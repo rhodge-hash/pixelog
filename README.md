@@ -1,3 +1,5 @@
+![Pixelog Logo](logo.png)
+
 # Pixelog
 
 Pixelog is a robust, open-source application designed to store diverse knowledge sources (text, images, audio, micro-videos) as compressed, encrypted video files (QR code streams). These files are portable, streamable, and semantically searchable.
