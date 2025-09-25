@@ -1,0 +1,56 @@
+openapi: 3.0.0
+info:
+  title: Pixelog API
+  version: 1.0.0
+paths:
+  /assets:
+    post:
+      summary: Upload a new knowledge asset
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: 
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeAsset'
+  /search:
+    get:
+      summary: Search for knowledge assets
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          required: true
+          description: The search query
+      responses:
+        '200':
+          description: A list of matching knowledge assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KnowledgeAsset'
+components:
+  schemas:
+    KnowledgeAsset:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        metadata:
+          type: object

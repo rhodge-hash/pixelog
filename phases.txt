@@ -1,0 +1,87 @@
+https://github.com/rhodge-hash/pixelog.git --> This is a brand new repo for this project. Commit and push to this repo.
+
+Phase 1: The Core Converter
+The first step is to create a process that turns any data—text, images, or a small video—into a sequence of QR code images. This is the data-to-frame engine.
+
+Prepare the Data: Convert your source data (a text string, an image file, etc.) into a simple string format. For complex data like images, you'll need to encode them (e.g., Base64).
+
+Generate QR Codes: Use a Node.js library like qrcode or lean-qr to generate QR code images from your prepared data string. You will create one QR code image per chunk of data.
+
+npm install qrcode
+
+Generate a Silent Video: Use ffmpeg to stitch the generated QR code images into a single video file. This process is highly efficient on the command line. You can call ffmpeg directly from your Node.js application using child_process.spawn. Add a silent audio track and set the video to a very low frame rate to keep the file size minimal.
+
+A simple ffmpeg command might look like this: ffmpeg -i "path/to/image_sequence/%d.png" -c:v libx264 -vf "fps=1,format=yuv420p" -an output.mp4
+
+Phase 2: The Indexer and API
+This phase makes the video-as-a-database concept a reality.
+
+Build the Index: For each QR code you generate, you'll need to create a vector embedding. You can do this with a JavaScript library like a local onnxruntime model or a call to an API. The Memvid proposal uses Faiss, which is typically C++ and Python-based. For a pure JavaScript environment, the best path is to use a server-side process that wraps a Python Faiss instance or to use a WebAssembly (Wasm) implementation if you can find one. A simpler approach for a quick demo is to use a client-side vector search library that can run in a browser or Node.js.
+
+Store the Index: You need to store the vector embeddings along with a reference to their corresponding video frame (e.g., frame_001.mp4). This can be a simple JSON file or an array in a database.
+
+Create an API: Wrap the entire process in a simple Node.js API using a framework like Express.
+
+POST /add: Takes data as input, converts it to QR codes, generates the video, creates the vector embeddings, and stores the index.
+
+GET /search: Takes a query string, converts it into a vector embedding, searches the index for the nearest match, and returns the video frame reference.
+
+Simple, Single-File JavaScript Example (Conceptual)
+This code outlines the core logic for Phase 1. You will need to install qrcode and have ffmpeg installed on your system.
+
+JavaScript
+
+// index.js
+const qrcode = require('qrcode');
+const { spawn } = require('child_process');
+const fs = require('fs').promises;
+const path = require('path');
+
+// Step 1: Prepare the data
+const dataToEmbed = 'This is a sample text string for our Memvid project.';
+const outputDir = path.join(__dirname, 'frames');
+const framePrefix = 'frame_';
+
+async function generateFrames() {
+    // Create a directory to store the frames
+    await fs.mkdir(outputDir, { recursive: true });
+
+    // Step 2: Generate a QR code image
+    const qrImage = await qrcode.toFile(path.join(outputDir, `${framePrefix}0001.png`), dataToEmbed);
+    console.log('QR Code frame generated.');
+
+    // Step 3: Use FFmpeg to create the video from the image
+    const ffmpegPath = 'ffmpeg'; // Ensure ffmpeg is in your system's PATH
+    const ffmpegArgs = [
+        '-r', '1', // 1 frame per second
+        '-i', `${outputDir}/${framePrefix}%04d.png`,
+        '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', // Ensure video dimensions are even, which is required by some codecs
+        '-c:v', 'libx264',
+        '-pix_fmt', 'yuv420p',
+        '-an', // No audio
+        'output.mp4'
+    ];
+
+    return new Promise((resolve, reject) => {
+        const ffmpegProcess = spawn(ffmpegPath, ffmpegArgs);
+
+        ffmpegProcess.stdout.on('data', (data) => {
+            console.log(`stdout: ${data}`);
+        });
+
+        ffmpegProcess.stderr.on('data', (data) => {
+            console.error(`stderr: ${data}`);
+        });
+
+        ffmpegProcess.on('close', (code) => {
+            if (code === 0) {
+                console.log('Video creation completed successfully.');
+                resolve();
+            } else {
+                reject(`FFmpeg process exited with code ${code}`);
+            }
+        });
+    });
+}
+
+generateFrames().catch(console.error);
