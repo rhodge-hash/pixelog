@@ -86,7 +86,7 @@ This application is currently a prototype. To achieve a fully working and robust
 ### 1. Embedding Service Implementation
 
 -   **Current Progress**: The `EmbeddingService` has been refactored to include `initializeModel()` and `generateEmbedding(data)` methods. The `KnowledgeAsset` model now includes an `embedding` field. The `SearchService` has been updated to utilize the `EmbeddingService`. Contract, unit, and performance tests for the `EmbeddingService` are in place. The `generateEmbedding` method currently uses a placeholder that generates random vectors of the correct dimension (384).
--   **Next Steps**: The actual machine learning model for generating embeddings needs to be integrated. This involves making a decision on the specific model and its deployment strategy (local, cloud API, etc.), as outlined in `research.md`.
+-   **Next Steps**: The actual machine learning model for generating embeddings needs to be integrated. This involves making a decision on the specific model and its deployment strategy (local, cloud API, etc.), as outlined in `specs/002-embedding-service-implementation/research.md`.
 
 ### 2. Data Storage and Retrieval
 
