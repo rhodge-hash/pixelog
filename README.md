@@ -1,3 +1,5 @@
+![Pixelog Logo](logo.png)
+
 # Pixelog
 
 Pixelog is a robust, open-source application designed to store diverse knowledge sources (text, images, audio, micro-videos) as compressed, encrypted video files (QR code streams). These files are portable, streamable, and semantically searchable.
@@ -8,6 +10,7 @@ Pixelog is a robust, open-source application designed to store diverse knowledge
 - **Compressed & Encrypted**: Efficient and secure storage of your data.
 - **Portable & Streamable**: Access your knowledge assets anywhere.
 - **Semantic Search**: Easily find what you're looking for with intelligent search.
+- **Embedding Service**: Generates vector embeddings for knowledge assets to enable semantic search.
 - **Open-Source**: Built with transparency and community in mind.
 
 ## Getting Started
@@ -84,12 +87,18 @@ This application is currently a prototype. To achieve a fully working and robust
 
 ### 1. Embedding Service Implementation
 
--   **Current Status**: The `backend/src/services/embedding-service.js` currently uses a placeholder that generates random vectors. The frontend uses `@xenova/transformers` for in-browser embeddings, but this needs to be integrated with the backend for consistent and robust semantic search.
--   **Action Required**: Integrate a real machine learning model for generating embeddings. Consider options like:
-    *   **Sentence Transformers**: For text embeddings.
-    *   **CLIP/OpenAI Embeddings**: For multimodal (text, image) embeddings.
-    *   **Local ONNX Runtime**: For running models locally in Node.js or WASM.
--   **Considerations**: Model size, inference speed, and accuracy are crucial. The choice of model will impact the `hnswlib-node` index dimension.
+-   **Current Progress**: The `EmbeddingService` has been refactored to include `initializeModel()` and `generateEmbedding(data)` methods. The `KnowledgeAsset` model now includes an `embedding` field. The `SearchService` has been updated to utilize the `EmbeddingService`. Contract, unit, and performance tests for the `EmbeddingService` are in place. The `generateEmbedding` method currently uses a placeholder that generates random vectors of the correct dimension (384).
+-   **Next Steps**: The actual machine learning model for generating embeddings needs to be integrated. This involves making a decision on the specific model and its deployment strategy (local, cloud API, etc.), as outlined in `specs/002-embedding-service-implementation/research.md`.
+
+#### 1.1 Embedding Service Implementation Next Steps  
+
+   1. Review `specs/002-embedding-service-implementation/research.md`: Make a concrete decision on the specific 
+      machine learning model for generating embeddings and its deployment strategy.
+   2. Implement the chosen embedding model: Replace the current placeholder in 
+      backend/src/services/embedding-service.js with the actual integration of the selected ML model.
+   3. Resolve failing tests: Ensure that the integration and contract tests related to asset ingestion and 
+      semantic search (tests/integration/embedding-ingestion.test.js, tests/integration/semantic-search.test.js, 
+      tests/contract/assets.test.js, tests/contract/search.test.js) pass after the embedding model is integrated.
 
 ### 2. Data Storage and Retrieval
 
